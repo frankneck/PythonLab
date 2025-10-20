@@ -57,11 +57,6 @@ def clearDataFrame(df):
 
     return cleaned_df, anomalies_all
 
-def calculateMatrixCor(df):
-    matrix = df.corr(method='pearson')
-
-    return matrix
-
 def printHistOfCol(col):            
     print(df[col].hist(bins=20))
     plt.show()
@@ -202,29 +197,33 @@ def compareResults(df, col):
         
         print(comparison_df.round(3))
 
-        # === 5. При желании сохраняем в CSV ===
         comparison_df.to_csv(f"{col}_instructors.csv", index=False)
 
         return 0
 
 if __name__ == "__main__":
     df = pd.read_csv('table.csv')
-    # print(f"\nКол-во в изначальной табле {len(df)}")
+    
+    # очистка df от аномалий + запись аномалий
     cleaned_df, anomalies = clearDataFrame(df)
-    # print(f"{cleaned_df}")
+    
+    # нахождение выбросов с помощью IQR
     detectAllOutliers_IQR(cleaned_df)
-    cor_matrix = calculateMatrixCor(df.loc[:, "Q1":])
+    
+    # нахождение выбросов с помощью Z-score
     outliers_z = detectAllOutliers_Z(cleaned_df)
+    
+    # общая матрица корреляций по средним показателям
     common_matrix_cor(cleaned_df)
+    
+    # сравнение предметов
+    compareResults(cleaned_df, "class")
+
+    # сравнение учителей по средним показателям
+    compareResults(cleaned_df, "instr")
     
     # for i in range(1, 14):
     #     print(f"кол-во записей урока {i} равно {len(df.loc[df["class"] == i])}") # для 12-го урока всего 41 запись == отстойная матрица кореляции
-    
-    # only_class_matrix_cor(cleaned_df)
-
-    # detect_describing_stat_for_col(cleaned_df, "instr", 2)
-    
-    compareResults(cleaned_df, "class")
 
 
     
