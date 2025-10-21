@@ -12,7 +12,7 @@ def detectOutlierValueInCol_IQR(df, col):
     low_border = Q1 - 1.5 * IQR
     high_border = Q3 + 1.5 * IQR
     outliers = df[(df[col] < low_border) | (df[col] > high_border)]
-    # print(f"{col}: Q1={Q1}, Q3={Q3}, IQR={IQR}, low={low_border}, high={high_border}, found={len(outliers)}")
+    print(f"{col}: Q1={Q1}, Q3={Q3}, IQR={IQR}, low={low_border}, high={high_border}, found={len(outliers)}")
     
     return outliers
 
@@ -72,7 +72,7 @@ def detectAllOutliers_IQR(df):
         IQR_outliers = pd.concat([IQR_outliers, outliers], ignore_index=True)
     
     IQR_outliers = IQR_outliers.drop_duplicates()
-    # print(f'{IQR_outliers.head(10)}')
+    print(f'{IQR_outliers.head(10)}')
     print(f'Всего найдено выбросо с помощью IQR {len(IQR_outliers)}')
 
     return IQR_outliers
@@ -92,7 +92,7 @@ def detectOutliersCol_Z(df, col, threshold=2, distribution="uniform"):
     z_score = (freq - p) / sigma
     outliers_values = z_score[abs(z_score) > threshold].index
     outliers_values = df[df[col].isin(outliers_values)]
-    # print(f"Z-score\n{z_score}")
+    print(f"Z-score\n{z_score}")
     return outliers_values
 
 def detectAllOutliers_Z(df):
@@ -102,7 +102,7 @@ def detectAllOutliers_Z(df):
         df = df.sort_values(by="instr")
 
     for col in df.loc[:, "difficulty":"Q28"]:
-        outliers = detectOutliersCol_Z(df, col, distribution="empirical")
+        outliers = detectOutliersCol_Z(df, col, distribution="uniform")
         Z_Outliers = pd.concat([Z_Outliers, outliers])
 
     Z_Outliers = Z_Outliers.drop_duplicates()
