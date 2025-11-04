@@ -23,10 +23,6 @@ class Program :
         
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-        scaler = StandardScaler()
-        X_train_scaled = scaler.fit_transform(X_train)
-        X_test_scaled = scaler.transform(X_test)
-
         # Models choice
         if model_type == "Linear":
             model = LinearRegression()
@@ -38,13 +34,15 @@ class Program :
             raise ValueError(f"Unknown regression type: {model_type}")
 
         # Learn and predict
-        model.fit(X_train_scaled, y_train)
-        y_pred = model.predict(X_test_scaled)
+        model.fit(X_train, y_train)
+        y_pred = model.predict(X_test)
 
         # Metrixes
         coef_df = DataFrameHadler.Compute_coefficients(model, X_train.columns)
         r2 = DataFrameHadler.CalculateR2(y_test=y_test, y_pred=y_pred)
         rmse = DataFrameHadler.CalculateRMSE(y_test=y_test, y_pred=y_pred)
+        mean_y = y_test.mean()
+        relative_error = (rmse / mean_y) * 100
         
         # Output
         print(f"\n=== {model_type} Regression ===")
@@ -52,16 +50,18 @@ class Program :
         print(f"alpha = {alpha}")
         print(f"R² = {r2:.4f}")
         print(f"RMSE = {rmse:.4f}")
+        print(f"Relative Error = {relative_error:.4f}")
 
         # Vizualization
-        DataFrameHadler.Plot_coefficients(coef_df, y_test=y_test, y_pred=y_pred)
+        DataFrameHadler.Plot_coefficients(coef_df, y_test=y_test, y_pred=y_pred, model_type=model_type)
 
         return model, coef_df
-
+    
 
     if __name__ == "__main__" :
         # Reading
         df = ReadInputs(path)
+        origin_count = df.shape[0]
         
         # Filling the misssing values
         DataFrameHadler.FillMissingValues(df)
@@ -75,16 +75,22 @@ class Program :
         df = DataFrameHadler.RemoveCols(df, skip_cols)
         df = DataFrameHadler.Standartize(df, skip_cols=['price'])
 
+        current_count = df.shape[0]
+
         # Adding new features
         new_features = ['sqft_per_room', 'age', 'yrs_since_renovated', 'total_rooms', 'density']
         df = DataFrameHadler.FeatureExtraction(df)
         # Standartization only needed extraction features
         df = DataFrameHadler.Standartize(df, skip_cols=['price'])
+        print(df)
 
+        print(f"Изначальное кол-во строк в DF : {origin_count}")
+        print(f"Оставшееся кол-во строк в DF : {current_count}")
+        
         # Use of linear regression
         UseRegression(df, model_type="Linear")
-        UseRegression(df, model_type="Ridge", alpha=0.5)
-        UseRegression(df, model_type="Lasso", alpha=0.01)
+        UseRegression(df, model_type="Ridge", alpha=3)
+        UseRegression(df, model_type="Lasso", alpha=120)
 
 
 

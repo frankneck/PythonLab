@@ -4,6 +4,7 @@ import datetime
 import matplotlib.pyplot as plt
 from sklearn.metrics import r2_score, mean_squared_error
 from sklearn.preprocessing import StandardScaler
+import os
 
 
 class DataFrameHadler :
@@ -124,20 +125,26 @@ class DataFrameHadler :
         return coef_df
     
     @staticmethod
-    def Plot_coefficients(coef_df, y_test=None, y_pred=None, new_features=None, figsize=(10, 8), base_color='skyblue', new_feature_color='orange', title='The influence of attributes on price'):
-        # histogramm
-        colors = []
-        for feature in coef_df['Feature']:
-            if new_features and feature in new_features:
-                colors.append(new_feature_color)
-            else:
-                colors.append(base_color)
+    def Plot_coefficients(coef_df, y_test=None, y_pred=None, new_features=None, figsize=(10, 8),
+                        base_color='skyblue', new_feature_color='orange', title='The influence of attributes on price',
+                        save_dir="histograms", model_type="Linear"):
 
+        # Полный путь к папке
+        full_save_dir = os.path.join("Linear_regression", save_dir)
+        os.makedirs(full_save_dir, exist_ok=True)  # создаём, если не существует
+
+        # histogram
+        colors = [new_feature_color if new_features and f in new_features else base_color for f in coef_df['Feature']]
         plt.figure(figsize=figsize)
         plt.barh(coef_df['Feature'], coef_df['Coefficient'], color=colors)
         plt.xlabel('Коэффициент регрессии')
         plt.title(title)
         plt.grid(axis='x', linestyle='--', alpha=0.7)
+        plt.tight_layout()
+
+        # сохраняем с уникальным именем
+        hist_path = os.path.join(full_save_dir, f"{model_type}_coefficients.png")
+        plt.savefig(hist_path, dpi=300, bbox_inches='tight')
         plt.show()
 
         # predict VS real
@@ -149,6 +156,11 @@ class DataFrameHadler :
             plt.ylabel('Реальное значение')
             plt.title('Предсказанное vs Реальное')
             plt.grid(True)
+            plt.tight_layout()
+
+            # уникальное имя файла для scatter
+            scatter_path = os.path.join(full_save_dir, f"{model_type}_prediction_vs_real.png")
+            plt.savefig(scatter_path, dpi=300, bbox_inches='tight')
             plt.show()
     
     @staticmethod
