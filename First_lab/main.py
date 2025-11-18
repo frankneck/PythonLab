@@ -17,17 +17,18 @@ def detectOutlierValueInCol_IQR(df, col):
     return outliers
 
 def clearDataFrame(df):
+    print(f"Исходный размер набора: {len(df)} строк")
     question_cols = [f"Q{i}" for i in range(1, 29)]
 
     # === 1. Аномалии с нулевой посещаемостью ===
     anomalies_attendance0 = df[df["attendance"] == 0]
-    # print(f"Нулевое посещение: {len(anomalies_attendance0)} записей")
+    print(f"Нулевое посещение: {len(anomalies_attendance0)} записей")
 
     cleaned_df = df[df["attendance"] != 0].copy()
 
     # === 2. Аномалии, где все ответы одинаковые ===
     anomalies_same_answers = cleaned_df[cleaned_df[question_cols].nunique(axis=1) == 1]
-    # print(f"Все ответы одинаковые: {len(anomalies_same_answers)} записей")
+    print(f"Все ответы одинаковые: {len(anomalies_same_answers)} записей")
 
     cleaned_df = cleaned_df[cleaned_df[question_cols].nunique(axis=1) > 1]
 
@@ -202,7 +203,7 @@ def compareResults(df, col):
         return 0
 
 if __name__ == "__main__":
-    df = pd.read_csv('table.csv')
+    df = pd.read_csv(r'Data\table.csv')
     
     # очистка df от аномалий + запись аномалий
     cleaned_df, anomalies = clearDataFrame(df)

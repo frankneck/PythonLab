@@ -5,9 +5,10 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import r2_score, mean_squared_error
 from sklearn.preprocessing import StandardScaler
 import os
+import operator
 
 
-class DataFrameHadler :
+class DataFrameHandler :
     @staticmethod
     def FillMissingValues(df, zero_columns = None, strategy="mean", fill_text = "unknown") :
         """
@@ -34,7 +35,51 @@ class DataFrameHadler :
                 df[col].fillna("None", inplace=True)
         
         return df
+
+    @staticmethod    
+    def RemoveDuplicates(df) :
+        df_removed = df[df.duplicated()]
+        df = df.drop_duplicates().reset_index(drop=True)
+        
+        return df, df_removed
+
+    @staticmethod
+    def clear_by_col_value(df, col, col_value):
+        df_removed = df[df[col] == col_value]
+        df = df[df[col] != col_value]
+
+        return df, df_removed 
     
+    @staticmethod
+    def clear_same_cols(df, col_list) : 
+        df_removed = df[df[col_list].nunique(axis=1) == 1]
+        df = df[df[col_list].nunique(axis=1) > 1]
+        
+        return df, df_removed
+    
+    @staticmethod
+    def clear_different_col_value_between_cols(df, col, col_value, cols, cols_value, op) :
+        """
+        Remove rows where col == col_value and any of cols satisfies the contidion with cols_value
+        op: ">", "<", ">=", "<="
+        """
+
+        ops = {
+            ">": operator.gt,
+            "<": operator.lt,
+            ">=": operator.ge,
+            "<=": operator.le
+        }
+
+        if op not in ops : 
+            raise ValueError("Invalid operator. Use one of : '>', '<', '>=', '<='.")
+        
+        mask = (df[col] == col_value) & (df[cols].apply(lambda x: ops[op](x, cols_value), axis=1).any(axis=1))
+        df_removed = df[mask].copy()  
+        df = df[~mask].copy()         
+
+        return df, df_removed
+
     @staticmethod
     def DetectOutliersIQR(df, skip_cols = None, multiplier = 1.5):
         if (skip_cols is None) :
@@ -75,7 +120,7 @@ class DataFrameHadler :
             return df
         
     @staticmethod
-    def Standartize(df, skip_cols = None):
+    def standartize(df, skip_cols = None):
         if skip_cols is None:
             skip_cols = []
         
